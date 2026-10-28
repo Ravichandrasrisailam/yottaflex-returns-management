@@ -1,0 +1,35 @@
+{
+  "customers_row_count": 15000,
+  "orders_row_count": 30000,
+  "order_lines_row_count": 75487,
+  "return_requests_row_count": 5000,
+  "return_lines_row_count": 8000,
+  "return_authorizations_row_count": 5000,
+  "return_shipments_row_count": 4137,
+  "inspections_row_count": 6597,
+  "refunds_row_count": 3401,
+  "inventory_dispositions_row_count": 6597,
+  "expected_orders": 30000,
+  "expected_return_requests": 5000,
+  "expected_return_lines": 8000,
+  "ground_truth_cases": 5,
+  "known_edge_case_types": [
+    "DUPLICATE_REFUND_ATTEMPT",
+    "LATE_RETURN_WITHOUT_OVERRIDE",
+    "REFUND_EXCEEDS_PAID_AMOUNT",
+    "RESTOCK_BEFORE_INSPECTION",
+    "RETURN_QUANTITY_EXCEEDS_PURCHASED"
+  ],
+  "foreign_key_validation": "PASS",
+  "primary_key_validation": "PASS",
+  "labelled_edge_case_validation": {
+    "EDGE-001_RETURN_QUANTITY_EXCEEDS_PURCHASED": "PASS",
+    "EDGE-002_REFUND_EXCEEDS_PAID": "PASS",
+    "EDGE-003_RESTOCK_BEFORE_INSPECTION": "PASS",
+    "EDGE-004_LATE_RETURN_WITHOUT_OVERRIDE": "PASS",
+    "EDGE-005_DUPLICATE_REFUND_ATTEMPT": "PASS"
+  },
+  "all_labelled_edge_cases_verified": true,
+  "known_anomalies_are_labelled_separately": true,
+  "validation_errors": []
+}

@@ -1,0 +1,6 @@
+case_id,entity,record_id,issue_type,expected_decision,description
+EDGE-001,return_lines,1,RETURN_QUANTITY_EXCEEDS_PURCHASED,REJECT_OR_REVIEW,Requested return quantity exceeds purchased quantity.
+EDGE-002,refunds,1,REFUND_EXCEEDS_PAID_AMOUNT,BLOCK_PAYOUT,Refund amount exceeds the total paid on the associated order.
+EDGE-003,inventory_dispositions,1,RESTOCK_BEFORE_INSPECTION,BLOCK_INVENTORY_MOVEMENT,Disposition timestamp precedes the associated inspection.
+EDGE-004,return_requests,2,LATE_RETURN_WITHOUT_OVERRIDE,REJECT,Request occurs after the policy window and has no approved override.
+EDGE-005,refunds,3401,DUPLICATE_REFUND_ATTEMPT,BLOCK_DUPLICATE_PAYOUT,A second refund attempt references a return request that already has a refund record.

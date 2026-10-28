@@ -1,0 +1,42 @@
+[
+  {
+    "case_id": "EDGE-001",
+    "entity": "return_lines",
+    "record_id": 1,
+    "issue_type": "RETURN_QUANTITY_EXCEEDS_PURCHASED",
+    "expected_decision": "REJECT_OR_REVIEW",
+    "description": "Requested return quantity exceeds purchased quantity."
+  },
+  {
+    "case_id": "EDGE-002",
+    "entity": "refunds",
+    "record_id": 1,
+    "issue_type": "REFUND_EXCEEDS_PAID_AMOUNT",
+    "expected_decision": "BLOCK_PAYOUT",
+    "description": "Refund amount exceeds the total paid on the associated order."
+  },
+  {
+    "case_id": "EDGE-003",
+    "entity": "inventory_dispositions",
+    "record_id": 1,
+    "issue_type": "RESTOCK_BEFORE_INSPECTION",
+    "expected_decision": "BLOCK_INVENTORY_MOVEMENT",
+    "description": "Disposition timestamp precedes the associated inspection."
+  },
+  {
+    "case_id": "EDGE-004",
+    "entity": "return_requests",
+    "record_id": 2,
+    "issue_type": "LATE_RETURN_WITHOUT_OVERRIDE",
+    "expected_decision": "REJECT",
+    "description": "Request occurs after the policy window and has no approved override."
+  },
+  {
+    "case_id": "EDGE-005",
+    "entity": "refunds",
+    "record_id": 3401,
+    "issue_type": "DUPLICATE_REFUND_ATTEMPT",
+    "expected_decision": "BLOCK_DUPLICATE_PAYOUT",
+    "description": "A second refund attempt references a return request that already has a refund record."
+  }
+]
