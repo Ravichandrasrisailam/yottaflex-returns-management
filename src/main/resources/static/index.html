@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="YottaFlex Returns Management Console">
+  <title>Returns Console · YottaFlex</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">Y</div><div><strong>YottaFlex</strong><span>RETURNS OPERATIONS</span></div></div>
+    <div class="side-label">WORKSPACE</div>
+    <a class="nav-item active" href="#overview"><span>▦</span> Overview</a>
+    <a class="nav-item" href="#orders"><span>□</span> Orders</a>
+    <a class="nav-item" href="#returns"><span>↩</span> Returns</a>
+    <a class="nav-item" href="#processing"><span>✓</span> Inspection & inventory</a>
+    <a class="nav-item" href="#shipments"><span>⇄</span> Shipments</a>
+    <a class="nav-item" href="#refunds"><span>₹</span> Refunds</a>
+    <div class="sidebar-foot"><span class="live-dot"></span> Local API console <small>Spring Boot · PostgreSQL</small></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div><div class="eyebrow">OPERATIONS / RETURNS</div><h1>Returns management</h1><p class="subhead">Inspect and operate your existing returns API from one place.</p></div>
+      <div class="api-status"><span id="statusDot" class="status-dot idle"></span><div><strong id="apiStatus">Not checked</strong><small id="apiStatusDetail">API base: same origin</small></div><button id="checkHealth" class="btn btn-light">Check API</button></div>
+    </header>
+
+    <section id="overview" class="stats-grid">
+      <article class="stat-card"><div class="stat-label">API integration</div><div class="stat-value">Live calls</div><div class="stat-foot">Requests go to this Spring Boot server</div></article>
+      <article class="stat-card"><div class="stat-label">Return lifecycle</div><div class="stat-value">8 stages</div><div class="stat-foot">Request → decision → shipment → inspection → refund</div></article>
+      <article class="stat-card"><div class="stat-label">Database</div><div class="stat-value">PostgreSQL</div><div class="stat-foot">Uses the application's configured database</div></article>
+    </section>
+
+    <section class="notice"><strong>Demo console</strong><span>This UI calls your existing REST endpoints. It does not use mock data or bypass backend validation. Some actions require IDs returned by earlier API calls.</span></section>
+
+    <section id="orders" class="panel">
+      <div class="panel-heading"><div><div class="eyebrow">01 / ORDER LOOKUP</div><h2>Find an order</h2><p>Look up an order and retrieve its order lines.</p></div></div>
+      <form id="orderLookupForm" class="inline-form">
+        <label>Order code<input id="orderCode" required maxlength="30" placeholder="e.g. ORD-10001"></label>
+        <button class="btn btn-primary" type="submit">Find order</button>
+        <button class="btn btn-light" id="loadOrderLines" type="button" disabled>Load lines</button>
+      </form>
+      <div id="orderResult" class="result empty">Order details will appear here.</div>
+      <div id="orderLinesResult" class="result empty">Order lines will appear here.</div>
+    </section>
+
+    <section id="returns" class="panel">
+      <div class="panel-heading"><div><div class="eyebrow">02 / RETURN REQUEST</div><h2>Create or retrieve a return</h2><p>Use the order code and a unique return code from your test data.</p></div></div>
+      <div class="split">
+        <form id="createReturnForm" class="form-grid">
+          <h3>Create return request</h3>
+          <label>Return code<input id="newReturnCode" required maxlength="30" placeholder="e.g. RET-DEMO-001"></label>
+          <label>Order code<input id="newReturnOrderCode" required maxlength="30" placeholder="e.g. ORD-10001"></label>
+          <label class="span-2">Reason<textarea id="newReturnReason" required maxlength="500" rows="2" placeholder="Reason for return"></textarea></label>
+          <button class="btn btn-primary" type="submit">Create request</button>
+        </form>
+        <form id="getReturnForm" class="form-grid">
+          <h3>Find return request</h3>
+          <label>Return code<input id="lookupReturnCode" required maxlength="30" placeholder="e.g. RET-DEMO-001"></label>
+          <button class="btn btn-primary" type="submit">Load return</button>
+          <div class="helper">The returned request ID is useful for refund creation.</div>
+        </form>
+      </div>
+      <div id="returnResult" class="result empty">Return request response will appear here.</div>
+      <div class="split split-lines">
+        <form id="addReturnLineForm" class="form-grid">
+          <h3>Add return line</h3>
+          <label>Return code<input id="lineReturnCode" required maxlength="30" placeholder="Return code"></label>
+          <label>Order line ID<input id="orderLineId" required type="number" min="1" step="1" placeholder="ID from order lines"></label>
+          <label>Quantity requested<input id="quantityRequested" required type="number" min="1" step="1" value="1"></label>
+          <button class="btn btn-primary" type="submit">Add line</button>
+        </form>
+        <form id="getReturnLinesForm" class="form-grid">
+          <h3>List return lines</h3>
+          <label>Return code<input id="listLinesReturnCode" required maxlength="30" placeholder="Return code"></label>
+          <button class="btn btn-light" type="submit">Load lines</button>
+        </form>
+      </div>
+      <div id="returnLinesResult" class="result empty">Return line response will appear here.</div>
+      <div class="split">
+        <form id="decisionForm" class="form-grid">
+          <h3>Approve or reject</h3>
+          <label>Return code<input id="decisionReturnCode" required maxlength="30" placeholder="Return code"></label>
+          <label>Decision<select id="decisionType"><option value="approve">Approve</option><option value="reject">Reject</option></select></label>
+          <label class="span-2">Decision request JSON<textarea id="decisionBody" rows="3">{}</textarea></label>
+          <div class="helper span-2">Confirm the fields required by your ReturnDecisionRequest DTO before using this action.</div>
+          <button class="btn btn-primary" type="submit">Submit decision</button>
+        </form>
+        <form id="markInspectedForm" class="form-grid">
+          <h3>Update return status</h3>
+          <label>Return code<input id="markInspectedCode" required maxlength="30" placeholder="Return code"></label>
+          <button class="btn btn-light" type="submit">Mark inspected</button>
+          <div class="helper">This calls the existing /inspected endpoint. Use it only when appropriate for the current lifecycle.</div>
+        </form>
+      </div>
+    </section>
+
+    <section id="processing" class="panel">
+      <div class="panel-heading"><div><div class="eyebrow">03 / INSPECTION & INVENTORY</div><h2>Process returned items</h2><p>Record inspection results, then assign an inventory disposition.</p></div></div>
+      <div class="split">
+        <form id="inspectionForm" class="form-grid">
+          <h3>Record inspection</h3>
+          <label>Return line ID<input id="inspectionReturnLineId" required type="number" min="1" step="1"></label>
+          <label>Condition found<select id="conditionFound" required><option value="LIKE_NEW">LIKE_NEW</option><option value="GOOD">GOOD</option><option value="DAMAGED">DAMAGED</option><option value="DEFECTIVE">DEFECTIVE</option><option value="INCOMPLETE">INCOMPLETE</option></select></label>
+          <label class="span-2">Notes<textarea id="inspectionNotes" maxlength="1000" rows="2" placeholder="Optional inspection notes"></textarea></label>
+          <button class="btn btn-primary" type="submit">Record inspection</button>
+        </form>
+        <form id="dispositionForm" class="form-grid">
+          <h3>Inventory disposition</h3>
+          <label>Inspection ID<input id="dispositionInspectionId" required type="number" min="1" step="1"></label>
+          <label>Disposition type<select id="dispositionType" required><option value="RESTOCK">RESTOCK</option><option value="REFURBISH">REFURBISH</option><option value="QUARANTINE">QUARANTINE</option><option value="SCRAP">SCRAP</option></select></label>
+          <label class="span-2">Decision reason<input id="dispositionReason" required maxlength="500" placeholder="Explain the inventory decision"></label>
+          <button class="btn btn-primary" type="submit">Save disposition</button>
+        </form>
+      </div>
+      <div class="split">
+        <form id="getInspectionForm" class="form-grid">
+          <h3>Find inspection</h3>
+          <label>Return line ID<input id="getInspectionLineId" required type="number" min="1" step="1"></label>
+          <button class="btn btn-light" type="submit">Load inspection</button>
+        </form>
+        <form id="getDispositionForm" class="form-grid">
+          <h3>Find disposition</h3>
+          <label>Inspection ID<input id="getDispositionInspectionId" required type="number" min="1" step="1"></label>
+          <button class="btn btn-light" type="submit">Load disposition</button>
+        </form>
+      </div>
+      <div id="inspectionResult" class="result empty">Inspection responses will appear here.</div>
+      <div id="dispositionResult" class="result empty">Inventory disposition responses will appear here.</div>
+    </section>
+
+    <section id="shipments" class="panel">
+      <div class="panel-heading"><div><div class="eyebrow">04 / RETURN SHIPMENT</div><h2>Track a return shipment</h2><p>Create a shipment and update its status using the existing API.</p></div></div>
+      <form id="createShipmentForm" class="form-grid four-col">
+        <label>Shipment code<input id="shipmentCode" required maxlength="30" placeholder="SHIP-DEMO-001"></label>
+        <label>Return code<input id="shipmentReturnCode" required maxlength="30" placeholder="RET-DEMO-001"></label>
+        <label>Carrier<input id="shipmentCarrier" maxlength="100" placeholder="Carrier name"></label>
+        <label>Tracking number<input id="trackingNumber" maxlength="100" placeholder="Tracking number"></label>
+        <button class="btn btn-primary" type="submit">Create shipment</button>
+      </form>
+      <div class="split">
+        <form id="shipmentStatusForm" class="form-grid">
+          <h3>Update shipment status</h3>
+          <label>Shipment code<input id="statusShipmentCode" required maxlength="30"></label>
+          <label>Action<select id="shipmentAction"><option value="in-transit">Mark in transit</option><option value="delivered">Mark delivered</option></select></label>
+          <button class="btn btn-primary" type="submit">Update status</button>
+        </form>
+        <form id="getShipmentsForm" class="form-grid">
+          <h3>List shipments for a return</h3>
+          <label>Return code<input id="shipmentsReturnCode" required maxlength="30"></label>
+          <button class="btn btn-light" type="submit">Load shipments</button>
+        </form>
+      </div>
+      <div id="shipmentResult" class="result empty">Shipment responses will appear here.</div>
+    </section>
+
+    <section id="refunds" class="panel">
+      <div class="panel-heading"><div><div class="eyebrow">05 / REFUND</div><h2>Initiate or retrieve a refund</h2><p>The API determines and validates the refund amount; this form only sends the return request ID.</p></div></div>
+      <div class="split">
+        <form id="createRefundForm" class="form-grid">
+          <h3>Create refund</h3>
+          <label>Return request ID<input id="refundReturnRequestId" required type="number" min="1" step="1" placeholder="ID from return response"></label>
+          <button class="btn btn-primary" type="submit">Initiate refund</button>
+        </form>
+        <form id="getRefundForm" class="form-grid">
+          <h3>Retrieve refund</h3>
+          <label>Refund ID<input id="refundId" required type="number" min="1" step="1" placeholder="ID from refund response"></label>
+          <button class="btn btn-light" type="submit">Load refund</button>
+        </form>
+      </div>
+      <div id="refundResult" class="result empty">Refund responses will appear here.</div>
+    </section>
+
+    <footer>YottaFlex Returns Management · Demo UI for the existing Spring Boot REST API</footer>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
